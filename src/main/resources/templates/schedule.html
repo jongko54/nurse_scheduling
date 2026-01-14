@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>AI Nurse Scheduler</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .shift-D { color: #f97316; font-weight: bold; } /* 데이: 주황 */
+        .shift-E { color: #22c55e; font-weight: bold; } /* 이브닝: 초록 */
+        .shift-N { color: #ef4444; font-weight: bold; } /* 나이트: 빨강 */
+        .shift-O { color: #94a3b8; }                   /* 오프: 회색 */
+    </style>
+</head>
+<body class="bg-gray-100">
+
+<div class="flex flex-col h-screen">
+    <header class="bg-white border-b p-4 flex justify-between items-center shadow-sm">
+        <h1 class="text-xl font-bold text-blue-700">DutyMaker <span class="text-gray-400 font-light" th:text="${deptCode}">부서코드</span></h1>
+        <div class="space-x-2">
+            <button onclick="runAI()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">AI 자동 배정 시작</button>
+            <button class="bg-green-600 text-white px-4 py-2 rounded-lg">엑셀 저장</button>
+        </div>
+    </header>
+
+    <div class="flex-1 flex overflow-hidden">
+        <main class="p-6 w-full overflow-auto">
+            <div class="bg-white rounded-xl shadow overflow-hidden">
+                <table class="w-full text-sm text-center border-collapse">
+                    <thead class="bg-gray-50 border-b">
+                    <tr>
+                        <th class="p-3 border-r w-32 sticky left-0 bg-gray-50">이름</th>
+                        <th th:each="day : ${#numbers.sequence(1, 31)}"
+                            class="p-2 border-r w-10" th:text="${day}">1</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr class="border-b hover:bg-blue-50 transition">
+                        <td class="p-3 border-r font-medium sticky left-0 bg-white">김간호 (SN)</td>
+                        <td th:each="day : ${#numbers.sequence(1, 31)}" class="border-r p-2 cursor-pointer hover:bg-yellow-100">
+                            <span class="shift-D">D</span>
+                        </td>
+                    </tr>
+                    <tr class="border-b hover:bg-blue-50 transition">
+                        <td class="p-3 border-r font-medium sticky left-0 bg-white">이간호 (JN)</td>
+                        <td th:each="day : ${#numbers.sequence(1, 31)}" class="border-r p-2">
+                            <span class="shift-E">E</span>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </main>
+    </div>
+</div>
+
+<script>
+    function runAI() {
+        alert("부서별 최적화 엔진을 가동합니다!");
+        // 여기에 나중에 작성한 API 호출(Fetch)을 넣으면 됩니다.
+    }
+
+</script>
+</body>
+</html>

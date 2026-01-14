@@ -1,10 +1,32 @@
 package com.hist.nursescheduling.domain;
 
 public enum Position {
-    HN, CN, SN, NJ; // 수간호사, 책임간호사, 일반간호사, 신입간호사
+    HN("수간호사"),
+    CN("책임간호사"),
+    SN("일반간호사"),
+    NJ("신입간호사");
 
     public boolean isSenior() {
 
         return this == HN || this == CN;
+    }
+
+    private final String name;
+
+    Position(String name) {
+        this.name = name;
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    Position fromCode(String code) {
+        for (Position positionCode : Position.values()) {
+            if (positionCode.name().equals(code)) {
+                return positionCode;
+            }
+        }
+        return null;
     }
 }

@@ -19,6 +19,9 @@ public class NurseLeaveRequest {
     @JoinColumn(name = "nurse_id")
     private Nurse nurse;
 
-    @Column(name = "requested_date")
     private LocalDate requestedDate;
+    private String deptCode;
+    private String deptName;
+    private String teamCode;
+    private String teamNm;
 }

@@ -36,5 +36,10 @@ public class Shift {
     @Column(name = "shift_type")
     private ShiftType shiftType;
 
-    private String department;
+    @Column(name = "deptCode")
+    private String deptCode;
+
+    // 부서 이름을 저장할 필드 추가 (선택 사항)
+    private String deptName;
+
 }

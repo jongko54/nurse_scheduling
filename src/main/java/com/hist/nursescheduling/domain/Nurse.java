@@ -4,35 +4,37 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
+
 @Entity
 @Data
-@NoArgsConstructor
-@Table(name = "nurse", catalog = "empinfo")
+@Table(name = "nurse")
 public class Nurse {
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true, nullable = false)
+    private String employeeNum; // 사번
+
     private String name;
 
     @Enumerated(EnumType.STRING)
-    private Position position;
+    private Position position; // HN, CN, SN, NJ
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "department")
-    private Department department;
+    private Department deptCode; // MDINTM, CTNICU 등
+
+    private String deptName; // "내과", "신생아중환자실" 등 (조인 방지용)
 
     @Enumerated(EnumType.STRING)
-    @Column(name = "shift_type")
-    private ShiftType shiftType;
+    private TeamCode teamCode; // NSIPT1, NSSPC1 등
 
-    @Enumerated(EnumType.STRING)
-    @Column(name = "team_code")
-    private TeamCode teamCode;
+    private String teamNm; // "입원간호1팀" 등
 
-    @Override
-    public String toString() {
-        return name + "(" + department + ")";
-    }
+    private LocalDate hireDate; // 숙련도 산출용
+
+    private Integer maxNightCount = 7; // 기본값 7개 제한
+
+    private boolean isActive = true; // 현재 스케줄링 대상인지 여부
 }

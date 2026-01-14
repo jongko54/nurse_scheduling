@@ -89,9 +89,9 @@ public enum Department {
 
     // 코드값으로 enum을 찾는 helper 메소드
     public static Department fromCode(String code) {
-        for (Department dept : Department.values()) {
-            if (dept.name().equals(code)) {
-                return dept;
+        for (Department deptcode : Department.values()) {
+            if (deptcode.name().equals(code)) {
+                return deptcode;
             }
         }
         return null;

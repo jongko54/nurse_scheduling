@@ -2,48 +2,100 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>AI Nurse Scheduler</title>
+    <title>AI Nurse Scheduler - DutyMaker</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
-        .shift-D { color: #f97316; font-weight: bold; } /* 데이: 주황 */
-        .shift-E { color: #22c55e; font-weight: bold; } /* 이브닝: 초록 */
-        .shift-N { color: #ef4444; font-weight: bold; } /* 나이트: 빨강 */
-        .shift-O { color: #94a3b8; }                   /* 오프: 회색 */
+        /* 근무 타입별 색상 정의 */
+        .shift-D { color: #f97316; font-weight: bold; } /* Day: 주황 */
+        .shift-E { color: #22c55e; font-weight: bold; } /* Evening: 초록 */
+        .shift-N { color: #ef4444; font-weight: bold; } /* Night: 빨강 */
+        .shift-OFF { color: #ffffff; background-color: #f87171; font-weight: bold; border-radius: 4px; } /* 신청 OFF: 빨강 배경 */
+        .shift-O { color: #94a3b8; }                   /* 배정 OFF: 회색 */
+
+        .sticky-col { position: sticky; left: 0; background-color: white; z-index: 10; }
+        .table-container::-webkit-scrollbar { height: 8px; }
+        .table-container::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
     </style>
 </head>
 <body class="bg-gray-100">
 
 <div class="flex flex-col h-screen">
     <header class="bg-white border-b p-4 flex justify-between items-center shadow-sm">
-        <h1 class="text-xl font-bold text-blue-700">DutyMaker <span class="text-gray-400 font-light" th:text="${deptCode}">부서코드</span></h1>
-        <div class="space-x-2">
-            <button onclick="runAI()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition">AI 자동 배정 시작</button>
-            <button class="bg-green-600 text-white px-4 py-2 rounded-lg">엑셀 저장</button>
+        <div class="flex items-center space-x-4">
+            <h1 class="text-xl font-bold text-blue-700 cursor-pointer" onclick="location.href='/'">DutyMaker</h1>
+
+            <div class="flex items-center space-x-2 bg-gray-50 border rounded-lg px-2 py-1">
+                <select id="yearSelect" class="bg-transparent focus:outline-none text-sm" onchange="updateDate()">
+                    <option value="2025" th:selected="${targetYear == 2025}">2025년</option>
+                    <option value="2026" th:selected="${targetYear == 2026}">2026년</option>
+                </select>
+                <select id="monthSelect" class="bg-transparent focus:outline-none text-sm font-bold text-blue-600" onchange="updateDate()">
+                    <option th:each="m : ${#numbers.sequence(1, 12)}"
+                            th:value="${m}" th:text="${m + '월'}"
+                            th:selected="${m == targetMonth}"></option>
+                </select>
+            </div>
+
+            <select id="deptSelect" class="border rounded-lg px-3 py-1 text-sm font-medium focus:ring-2 focus:ring-blue-500"
+                    onchange="updateDate()">
+                <option value="" disabled>부서 선택</option>
+                <option th:each="dept : ${T(com.hist.nursescheduling.domain.enumNm.Department).values()}"
+                        th:value="${dept.name()}"
+                        th:text="${dept.name}"
+                        th:selected="${dept.name() == deptCode}">내과</option>
+            </select>
+        </div>
+
+        <div class="flex items-center space-x-4">
+            <div id="statusArea" class="hidden flex items-center space-x-2 bg-blue-50 px-3 py-1 rounded-full border border-blue-200">
+                <span class="relative flex h-2 w-2">
+                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-blue-400 opacity-75"></span>
+                    <span class="relative inline-flex rounded-full h-2 w-2 bg-blue-500"></span>
+                </span>
+                <span id="currentScore" class="text-xs font-mono text-blue-700 font-bold">계산 중...</span>
+            </div>
+
+            <button onclick="runAI()" class="bg-blue-600 text-white px-5 py-2 rounded-lg hover:bg-blue-700 shadow-md transition-all font-bold">
+                AI 자동 배정 시작
+            </button>
+            <button class="bg-white border border-green-600 text-green-600 px-4 py-2 rounded-lg hover:bg-green-50 transition">엑셀 저장</button>
         </div>
     </header>
 
     <div class="flex-1 flex overflow-hidden">
-        <main class="p-6 w-full overflow-auto">
-            <div class="bg-white rounded-xl shadow overflow-hidden">
-                <table class="w-full text-sm text-center border-collapse">
+        <main class="p-6 w-full overflow-auto table-container">
+            <div class="bg-white rounded-xl shadow-lg overflow-hidden border">
+                <table class="w-full text-xs text-center border-collapse">
                     <thead class="bg-gray-50 border-b">
                     <tr>
-                        <th class="p-3 border-r w-32 sticky left-0 bg-gray-50">이름</th>
-                        <th th:each="day : ${#numbers.sequence(1, 31)}"
-                            class="p-2 border-r w-10" th:text="${day}">1</th>
+                        <th class="p-3 border-r w-32 sticky-col font-bold">이름 (직급)</th>
+                        <th th:each="day : ${#numbers.sequence(1, daysInMonth)}"
+                            class="p-2 border-r w-10 min-w-[40px] font-semibold"
+                            th:classappend="${day == #temporals.day(#temporals.createNow())} ? 'bg-blue-50 text-blue-600' : ''"
+                            th:text="${day}">1</th>
                     </tr>
                     </thead>
                     <tbody>
-                    <tr class="border-b hover:bg-blue-50 transition">
-                        <td class="p-3 border-r font-medium sticky left-0 bg-white">김간호 (SN)</td>
-                        <td th:each="day : ${#numbers.sequence(1, 31)}" class="border-r p-2 cursor-pointer hover:bg-yellow-100">
-                            <span class="shift-D">D</span>
+                    <tr th:each="nurse : ${nurseList}" class="border-b hover:bg-blue-50 transition">
+                        <td class="p-3 border-r font-medium sticky-col shadow-[2px_0_5px_-2px_rgba(0,0,0,0.1)]">
+                            <span th:text="${nurse.name}">김간호</span>
+                            <span class="text-[10px] text-gray-400 block" th:text="${'(' + nurse.position + ')'}">(SN)</span>
+                        </td>
+
+                        <td th:each="day : ${#numbers.sequence(1, daysInMonth)}"
+                            class="border-r p-2 cursor-pointer hover:bg-yellow-50 relative"
+                            th:with="key=${nurse.id + '_' + day}">
+                            <div th:if="${offSet != null && offSet.contains(key)}" class="shift-OFF py-1">OFF</div>
+                            <div th:if="${shiftMap != null && shiftMap.containsKey(key)}"
+                                 th:class="${'shift-' + shiftMap.get(key)}"
+                                 th:text="${shiftMap.get(key)}">D</div>
+                            <span th:if="${(offSet == null || !offSet.contains(key)) && (shiftMap == null || !shiftMap.containsKey(key))}"
+                                  class="shift-O">-</span>
                         </td>
                     </tr>
-                    <tr class="border-b hover:bg-blue-50 transition">
-                        <td class="p-3 border-r font-medium sticky left-0 bg-white">이간호 (JN)</td>
-                        <td th:each="day : ${#numbers.sequence(1, 31)}" class="border-r p-2">
-                            <span class="shift-E">E</span>
+                    <tr th:if="${#lists.isEmpty(nurseList)}">
+                        <td th:colspan="${daysInMonth + 1}" class="p-10 text-gray-400 italic text-center">
+                            해당 부서에 등록된 간호사가 없거나 부서를 선택해주세요.
                         </td>
                     </tr>
                     </tbody>
@@ -52,13 +104,81 @@
         </main>
     </div>
 </div>
+<div class="flex items-center space-x-4">
+    <button onclick="saveToDb()" class="bg-green-600 text-white px-5 py-2 rounded-lg hover:bg-green-700 shadow-md font-bold">
+        배정 결과 저장
+    </button>
+</div>
 
-<script>
-    function runAI() {
-        alert("부서별 최적화 엔진을 가동합니다!");
-        // 여기에 나중에 작성한 API 호출(Fetch)을 넣으면 됩니다.
+<script th:inline="javascript">
+    const currentDeptCode = [[${deptCode}]];
+
+    // 연도, 월, 부서 변경 시 페이지 이동
+    function updateDate() {
+        const year = document.getElementById("yearSelect").value;
+        const month = document.getElementById("monthSelect").value;
+        const dept = document.getElementById("deptSelect").value;
+
+        if (dept) {
+            location.href = `/schedule/${dept}?year=${year}&month=${month}`;
+        }
     }
 
+    function runAI() {
+        if (!currentDeptCode) {
+            alert("부서를 먼저 선택해주세요.");
+            return;
+        }
+
+        // 화면에서 현재 선택된 연도와 월 가져오기
+        const year = document.getElementById("yearSelect").value;
+        const month = document.getElementById("monthSelect").value;
+
+        if (!confirm(`${year}년 ${month}월 배정을 시작하시겠습니까?`)) return;
+
+        document.getElementById("statusArea").classList.remove("hidden");
+        const scoreDisplay = document.getElementById("currentScore");
+        scoreDisplay.innerText = "엔진 기동 중...";
+
+        // 1. SSE 구독 (기존과 동일)
+        const eventSource = new EventSource(`/api/schedule/subscribe/${currentDeptCode}`);
+        // ... (이벤트 리스너 생략) ...
+
+        // 2. 백엔드 알고리즘 실행 요청 (수정 포인트: URL에 year와 month 추가)
+        fetch(`/api/schedule/solve/${currentDeptCode}?year=${year}&month=${month}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        })
+            .then(response => {
+                if (response.ok) {
+                    console.log("AI Solver started.");
+                } else {
+                    alert("배정 시작에 실패했습니다.");
+                }
+            })
+            .catch(error => console.error("Fetch error:", error));
+    }
+    function saveToDb() {
+        if (!currentDeptCode) {
+            alert("부서를 먼저 선택해주세요.");
+            return;
+        }
+
+        if (!confirm("현재 화면의 배정 결과를 데이터베이스에 최종 저장하시겠습니까?")) return;
+
+        fetch(`/api/schedule/save/${currentDeptCode}`, {
+            method: 'POST'
+        })
+            .then(response => {
+                if (response.ok) {
+                    alert("성공적으로 저장되었습니다.");
+                    location.reload(); // 저장 후 화면 갱신
+                } else {
+                    response.text().then(msg => alert(msg));
+                }
+            })
+            .catch(error => console.error("Save error:", error));
+    }
 </script>
 </body>
 </html>

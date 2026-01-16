@@ -1,17 +1,24 @@
 package com.hist.nursescheduling.domain;
 
+import ai.timefold.solver.core.api.domain.lookup.PlanningId;
+import com.hist.nursescheduling.domain.enumNm.Department;
+import com.hist.nursescheduling.domain.enumNm.Position;
+import com.hist.nursescheduling.domain.enumNm.TeamCode;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDate;
 
 @Entity
-@Data
-@Table(name = "nurse")
+@Getter
+@Setter
+@NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Nurse {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @PlanningId
+    @EqualsAndHashCode.Include
     private Long id;
 
     @Column(unique = true, nullable = false)
@@ -37,4 +44,11 @@ public class Nurse {
     private Integer maxNightCount = 7; // 기본값 7개 제한
 
     private boolean isActive = true; // 현재 스케줄링 대상인지 여부
+
+    @Enumerated(EnumType.STRING)
+    private WorkType workType; // SHIFT(3교대), REGULAR(9-6)
+
+    public enum WorkType {
+        SHIFT, REGULAR
+    }
 }

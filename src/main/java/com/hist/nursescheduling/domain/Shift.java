@@ -1,37 +1,42 @@
 package com.hist.nursescheduling.domain;
 
+import ai.timefold.solver.core.api.domain.lookup.PlanningId;
+import com.hist.nursescheduling.domain.enumNm.ShiftType;
 import jakarta.persistence.*;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import ai.timefold.solver.core.api.domain.entity.PlanningEntity;
 import ai.timefold.solver.core.api.domain.variable.PlanningVariable;
+
 import java.time.LocalDateTime;
 
 @Entity
-@Data
+@Getter // @Data 대신 개별 Getter/Setter 사용 권장
+@Setter
+@ToString
 @NoArgsConstructor
 @PlanningEntity
 @Table(name = "shift", catalog = "empinfo")
+// 핵심: equals와 hashCode를 id 필드에만 한정합니다.
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 public class Shift {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @PlanningId
+    @EqualsAndHashCode.Include // id 값만 비교 및 해시 생성에 사용
     private Long id;
 
-    // 1. 배정될 간호사 (Planning Variable)
     @ManyToOne
     @JoinColumn(name = "nurse_id")
     @PlanningVariable(valueRangeProviderRefs = "nurseRange")
-    private Nurse nurse;
+    private Nurse nurse; // 이 값은 계속 변하므로 hashCode에 포함되면 안 됩니다.
 
-    // 2. 근무 시간 정보
     @Column(name = "start_date_time")
     private LocalDateTime startDateTime;
 
     @Column(name = "end_date_time")
     private LocalDateTime endDateTime;
 
-    // 3. 근무 타입 (Enum)
     @Enumerated(EnumType.STRING)
     @Column(name = "shift_type")
     private ShiftType shiftType;
@@ -39,7 +44,5 @@ public class Shift {
     @Column(name = "deptCode")
     private String deptCode;
 
-    // 부서 이름을 저장할 필드 추가 (선택 사항)
     private String deptName;
-
 }

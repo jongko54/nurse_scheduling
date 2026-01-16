@@ -1,4 +1,4 @@
-package com.hist.nursescheduling.domain;
+package com.hist.nursescheduling.domain.enumNm;
 
 public enum TeamCode {
     NSADPL("간호행정기획팀"),

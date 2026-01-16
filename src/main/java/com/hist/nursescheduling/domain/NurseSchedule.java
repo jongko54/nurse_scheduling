@@ -5,6 +5,7 @@ import ai.timefold.solver.core.api.domain.solution.PlanningScore;
 import ai.timefold.solver.core.api.domain.solution.PlanningSolution;
 import ai.timefold.solver.core.api.domain.solution.ProblemFactCollectionProperty;
 import ai.timefold.solver.core.api.domain.valuerange.ValueRangeProvider;
+import ai.timefold.solver.core.api.score.buildin.hardmediumsoft.HardMediumSoftScore;
 import ai.timefold.solver.core.api.score.buildin.hardsoft.HardSoftScore;
 import lombok.AllArgsConstructor; // 추가
 import lombok.Data;
@@ -30,7 +31,7 @@ public class NurseSchedule {
     private List<NurseLeaveRequest> leaveRequestList;
 
     @PlanningScore
-    private HardSoftScore score;
+    private HardMediumSoftScore score;
 
     public NurseSchedule(List<Nurse> nurseList, List<Shift> shiftList) {
         this.nurseList = nurseList;

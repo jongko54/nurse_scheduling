@@ -8,8 +8,8 @@ import java.util.List;
 public interface ShiftRepository extends JpaRepository<Shift, Long> {
 
     // (권장) 특정 부서의 특정 기간 내 근무 슬롯만 조회
-    List<Shift> findByDepartmentAndStartDateTimeBetween(
-            String department,
+    List<Shift> findByDeptCodeAndStartDateTimeBetween(
+            String deptCode,
             LocalDateTime start,
             LocalDateTime end
     );

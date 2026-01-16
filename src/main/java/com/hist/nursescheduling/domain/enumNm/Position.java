@@ -1,4 +1,4 @@
-package com.hist.nursescheduling.domain;
+package com.hist.nursescheduling.domain.enumNm;
 
 public enum Position {
     HN("수간호사"),

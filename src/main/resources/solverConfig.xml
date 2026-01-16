@@ -16,7 +16,13 @@
     </termination>
 
     <constructionHeuristic>
-        <constructionHeuristicType>FIRST_FIT_DECREASING</constructionHeuristicType>
+        <queuedEntityPlacer>
+            <entitySelector id="placerEntitySelector">
+                <cacheType>PHASE</cacheType>
+                <selectionOrder>SORTED</selectionOrder>
+                <sorterComparatorClass>com.hist.nursescheduling.comparator.ShiftDifficultyComparator</sorterComparatorClass>
+            </entitySelector>
+        </queuedEntityPlacer>
     </constructionHeuristic>
 
     <localSearch>

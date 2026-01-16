@@ -1,4 +1,4 @@
-package com.hist.nursescheduling.domain;
+package com.hist.nursescheduling.domain.enumNm;
 
 public enum Department {
     // --- 진료과 (Medical Departments: MD로 시작) ---

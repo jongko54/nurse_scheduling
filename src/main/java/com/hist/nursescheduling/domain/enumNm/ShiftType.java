@@ -1,4 +1,4 @@
-package com.hist.nursescheduling.domain;
+package com.hist.nursescheduling.domain.enumNm;
 
 public enum ShiftType {
     WARD_DAY("07:00", "15:30"),

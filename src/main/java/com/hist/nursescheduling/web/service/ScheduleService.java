@@ -14,6 +14,7 @@ import com.hist.nursescheduling.domain.enumNm.Department;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 @Slf4j
@@ -29,15 +30,27 @@ public class ScheduleService {
 
     private final Map<String, NurseSchedule> solutionCache = new ConcurrentHashMap<>();
 
+    private static final Set<Department> SHIFT_DEPARTMENTS = Set.of(
+            Department.CTMICU, Department.CTSICU, Department.CTIICU,
+            Department.CTNICU, Department.CTREMC, Department.MDEMER,
+            Department.CTORRM, Department.MDHOSP, Department.CTHOSP, Department.CTCBMT);
+
     @Transactional
     public void startSolving(Department deptCode, int year, int month) {
+
+        if (!SHIFT_DEPARTMENTS.contains(deptCode)) {
+            log.info("부서 [{}]는 통상 근무 부서이므로 자동 배정에서 제외됩니다.", deptCode.getName());
+            return;
+        }
+
         LocalDate start = LocalDate.of(year, month, 1);
         LocalDate end = start.withDayOfMonth(start.lengthOfMonth());
 
         List<Nurse> nurseList = nurseRepository.findByDeptCode(deptCode).stream()
                 .filter(n -> n.getWorkType() == Nurse.WorkType.SHIFT)
                 .toList();
-        List<NurseLeaveRequest> leaveRequestList = leaveRequestRepository.findByDeptCodeAndRequestedDateBetween(deptCode, start, end);
+        List<NurseLeaveRequest> leaveRequestList = leaveRequestRepository
+                .findByDeptCodeAndRequestedDateBetween(deptCode, start, end);
         List<Shift> shiftList = shiftRepository.findByDeptCode(deptCode.name());
 
         if (nurseList.isEmpty()) {
@@ -59,7 +72,7 @@ public class ScheduleService {
                 // [최종 결과] 계산이 완전히 끝났을 때 실행 (DB 저장)
                 .withFinalBestSolutionEventConsumer(event -> {
                     solutionCache.put(deptCode.name(), event.solution());
-                    log.error("부서 [{}] 배정 대기 상태: ", deptCode);
+                    log.info("부서 [{}] 배정 완료 및 캐시 저장", deptCode);
                 })
                 // 예외 처리
                 .withExceptionHandler((id, exception) -> {
